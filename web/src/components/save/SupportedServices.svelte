@@ -8,9 +8,9 @@
     import PopoverContainer from "$components/misc/PopoverContainer.svelte";
 
     let services: string[] = [];
+    let statusMap: Record<string, 'available' | 'issue' | 'unavailable'> = {};
 
     $: expanded = false;
-
     let servicesContainer: HTMLDivElement;
     $: loaded = false;
 
@@ -18,8 +18,20 @@
         await getServerInfo();
 
         if ($cachedInfo) {
-            loaded = true;
             services = $cachedInfo.info.cobalt.services;
+
+            try {
+                const res = await fetch('/api/services/status.js');
+                if (res.ok) {
+                    statusMap = await res.json();
+                } else {
+                    console.error("Error fetching services status");
+                }
+            } catch (err) {
+                console.error("Unable to retrieve service status", err);
+            }
+
+            loaded = true;
         }
     };
 
@@ -31,6 +43,12 @@
         if (expanded) {
             servicesContainer.focus();
         }
+    };
+
+    const statusLabel = {
+        available: "Available",
+        issue: "Has issue",
+        unavailable: "Unavailable"
     };
 </script>
 
@@ -55,7 +73,12 @@
         >
             {#if loaded}
                 {#each services as service}
-                    <div class="service-item">{service}</div>
+                    <div
+                        class="service-item {statusMap[service] || 'available'}"
+                        title={statusLabel[statusMap[service] || 'available']}
+                    >
+                        {service}
+                    </div>
                 {/each}
             {:else}
                 {#each { length: 17 } as _}
@@ -74,126 +97,39 @@
 </div>
 
 <style>
-    #supported-services {
-        display: flex;
-        position: relative;
-        max-width: 400px;
-        flex-direction: column;
-        align-items: center;
-        height: 35px;
-    }
-
-    #services-button {
-        gap: 9px;
-        padding: 7px 13px 7px 10px;
-        justify-content: flex-start;
-        border-radius: 18px;
-        display: flex;
-        flex-direction: row;
-        font-size: 13px;
-        font-weight: 500;
-        background: none;
-        transition:
-            background 0.2s,
-            box-shadow 0.1s;
-    }
-
-    #services-button:not(:active) {
-        box-shadow: none;
-    }
-
-    .expand-icon {
-        height: 22px;
-        width: 22px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 18px;
-        background: var(--button-elevated);
-        padding: 0;
-        box-shadow: none;
-        transition:
-            background 0.2s,
-            transform 0.2s;
-    }
-
-    #services-button:active {
-        background: var(--button-hover-transparent);
-    }
-
-    @media (hover: hover) {
-        #services-button:hover {
-            background: var(--button-hover-transparent);
-        }
-
-        #services-button:active {
-            background: var(--button-press-transparent);
-        }
-
-        #services-button:hover .expand-icon {
-            background: var(--button-elevated-hover);
-        }
-    }
-
-    @media (hover: none) {
-        #services-button:active {
-            box-shadow: none;
-        }
-    }
-
-    #services-button:active .expand-icon {
-        background: var(--button-elevated-press);
-    }
-
-    .expand-icon :global(svg) {
-        height: 18px;
-        width: 18px;
-        stroke-width: 2px;
-        color: var(--secondary);
-        will-change: transform;
-    }
-
-    .expanded .expand-icon {
-        transform: rotate(45deg);
-    }
-
-    #services-container {
-        display: flex;
-        flex-wrap: wrap;
-        flex-direction: row;
-        gap: 3px;
-    }
-
     .service-item {
         display: flex;
         padding: 4px 8px;
         border-radius: calc(var(--border-radius) / 2);
-        background: var(--button-elevated);
         font-size: 12.5px;
         font-weight: 500;
+        cursor: default;
     }
 
-    #services-disclaimer {
-        padding: 0;
-        user-select: none;
-        -webkit-user-select: none;
+    .available {
+        background: #e6f4ea;
+        color: #137333;
     }
 
-    .expanded #services-disclaimer {
-        padding: 0;
-        user-select: text;
-        -webkit-user-select: text;
+    .issue {
+        background: #fff4e5;
+        color: #a15c00;
     }
 
-    @media screen and (max-width: 535px) {
-        .expand-icon {
-            height: 21px;
-            width: 21px;
-        }
+    .unavailable {
+        background: #fce8e6;
+        color: #a50e0e;
+    }
 
-        .expand-icon :global(svg) {
-            height: 16px;
-            width: 16px;
-        }
+    .service-item:hover.available {
+        background: #d6f0de;
+    }
+
+    .service-item:hover.issue {
+        background: #ffe9cc;
+    }
+
+    .service-item:hover.unavailable {
+        background: #f8d7d5;
     }
 </style>
