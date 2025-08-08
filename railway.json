@@ -1,0 +1,10 @@
+{
+  "build": {
+    "cache": [
+      {
+        "key": "npm-cache",
+        "mount": "npm-cache-node_modules"
+      }
+    ]
+  }
+}
