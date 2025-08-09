@@ -16,7 +16,7 @@ const statusData = {
   streamable: "available",
   tiktok: "available",
   tumblr: "available",
-  "twitch clips": "available",
+  twitch clips: "available",
   twitter: "available",
   vimeo: "available",
   ck: "available",
