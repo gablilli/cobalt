@@ -315,7 +315,35 @@ export const runAPI = async (express, app, __dirname, isPrimary = true) => {
 
         return stream(res, streamInfo);
     });
+    
+    app.get('/services/status', (req, res) => {
+    const statusData = {
+    "bilibili": "available",
+    "bluesky": "available",
+    "dailymotion": "available",
+    "facebook": "available",
+    "instagram": "available",
+    "loom": "available",
+    "ok": "available",
+    "pinterest": "available",
+    "reddit": "available",
+    "rutube": "available",
+    "snapchat": "available",
+    "streamable": "available",
+    "tiktok": "available",
+    "tumblr": "available",
+    "twitch clips": "available",
+    "twitter": "available",
+    "vimeo": "available",
+    "ck": "available",
+    "xiaohongshu": "available",
+    "soundcloud": "issue",
+    "youtube": "unavailable"
+    };
 
+    res.json(statusData);
+    });
+    
     app.get('/', (_, res) => {
         res.type('json');
         res.status(200).send(env.envFile ? getServerInfo() : serverInfo);
